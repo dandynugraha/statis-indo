@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Survey AI × FMIPA IPB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #111827;
+  --bg-card: #1a2233;
+  --accent: #6ee7b7;
+  --accent-dim: #34d399;
+  --accent-glow: rgba(110, 231, 183, 0.15);
+  --accent-glow-strong: rgba(110, 231, 183, 0.3);
+  --text-primary: #f0fdf4;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: rgba(110, 231, 183, 0.12);
+  --border-active: rgba(110, 231, 183, 0.4);
+  --danger: #f87171;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-display);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== BACKGROUND EFFECTS ===== */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.bg-mesh::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  top: -200px; right: -200px;
+  background: radial-gradient(circle, rgba(110,231,183,0.06) 0%, transparent 70%);
+  animation: drift 20s ease-in-out infinite;
+}
+.bg-mesh::after {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  bottom: -150px; left: -150px;
+  background: radial-gradient(circle, rgba(56,189,248,0.04) 0%, transparent 70%);
+  animation: drift 25s ease-in-out infinite reverse;
+}
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -30px) scale(1.1); }
+}
+
+.grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: 
+    linear-gradient(rgba(110,231,183,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110,231,183,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-container {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 0;
+  background: rgba(10, 14, 23, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.progress-inner {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.progress-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(110,231,183,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.progress-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  min-width: 42px;
+  text-align: right;
+  letter-spacing: 0.5px;
+}
+
+/* ===== MAIN CONTAINER ===== */
+.survey-container {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px 20px;
+}
+
+/* ===== SLIDES ===== */
+.slide {
+  position: absolute;
+  width: 100%;
+  max-width: 580px;
+  padding: 0 20px;
+  opacity: 0;
+  transform: translateY(60px);
+  pointer-events: none;
+  transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.slide.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+.slide.exit-up {
+  opacity: 0;
+  transform: translateY(-60px);
+  pointer-events: none;
+}
+
+/* ===== QUESTION STYLING ===== */
+.q-number {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.q-number::after {
+  content: '';
+  flex: 1;
+  max-width: 40px;
+  height: 1px;
+  background: var(--accent-dim);
+  opacity: 0.4;
+}
+.q-section-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+  background: var(--accent-glow);
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.q-text {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin-bottom: 32px;
+}
+@media (max-width: 480px) {
+  .q-text { font-size: 17px; }
+}
+
+/* ===== OPTIONS (Radio/Select) ===== */
+.options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.option-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.option-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-glow), transparent);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.option-btn:hover {
+  border-color: var(--border-active);
+  transform: translateX(4px);
+}
+.option-btn:hover::before { opacity: 1; }
+.option-btn.selected {
+  border-color: var(--accent);
+  background: rgba(110,231,183,0.08);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.option-btn.selected::before { opacity: 1; }
+.option-key {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: all 0.25s ease;
+}
+.option-btn.selected .option-key {
+  color: var(--bg-primary);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.option-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
+  transition: color 0.25s ease;
+}
+.option-btn.selected .option-label { color: var(--text-primary); }
+
+/* ===== LIKERT SCALE ===== */
+.likert-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.likert-scale {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.likert-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.likert-btn:hover {
+  border-color: var(--border-active);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+.likert-btn.selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg-primary);
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 8px 24px var(--accent-glow-strong);
+}
+.likert-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+.likert-label-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+@media (max-width: 380px) {
+  .likert-btn { width: 48px; height: 48px; font-size: 14px; }
+  .likert-scale { gap: 6px; }
+}
+
+/* ===== SELECT INPUT ===== */
+.select-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  transition: all 0.25s ease;
+}
+.select-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.select-input option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ===== NAVIGATION ===== */
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 36px;
+  gap: 12px;
+}
+.btn-next, .btn-prev, .btn-submit {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.3px;
+}
+.btn-next {
+  padding: 12px 28px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  margin-left: auto;
+}
+.btn-next:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--accent-glow-strong);
+}
+.btn-next:active { transform: translateY(0); }
+.btn-prev {
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+}
+.btn-prev:hover {
+  color: var(--text-primary);
+  border-color: var(--border-active);
+}
+.btn-submit {
+  padding: 14px 36px;
+  background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+  color: var(--bg-primary);
+  font-size: 15px;
+  margin-left: auto;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px var(--accent-glow-strong);
+}
+.btn-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.hint-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.3px;
+}
+.hint-text kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 11px;
+  margin: 0 2px;
+}
+
+/* ===== INTRO SLIDE ===== */
+.intro-content {
+  text-align: center;
+}
+.intro-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.intro-title {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.35;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--text-primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.intro-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 8px;
+  max-width: 460px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.intro-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+  letter-spacing: 0.5px;
+}
+.intro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 28px;
+}
+.btn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 40px;
+  background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+  color: var(--bg-primary);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  letter-spacing: 0.3px;
+}
+.btn-start:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px var(--accent-glow-strong);
+}
+
+/* ===== THANK YOU SLIDE ===== */
+.thankyou-content {
+  text-align: center;
+}
+.confetti-zone {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+}
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  top: -20px;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+.thankyou-emoji {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.thankyou-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--accent), #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.thankyou-text {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 420px;
+  margin: 0 auto 24px;
+}
+.thankyou-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.stat-item {
+  text-align: center;
+}
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ===== LOADING OVERLAY ===== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(10, 14, 23, 0.92);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+.loading-overlay.show { display: flex; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ===== ERROR SHAKE ===== */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+.shake { animation: shake 0.4s ease; }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="grid-overlay"></div>
+
+<div class="progress-container" id="progressBar" style="display:none;">
+  <div class="progress-inner">
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <span class="progress-label" id="progressLabel">0%</span>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Mengirim respons Anda...</div>
+</div>
+
+<div class="confetti-zone" id="confettiZone"></div>
+
+<div class="survey-container" id="surveyContainer">
+
+  <!-- INTRO -->
+  <div class="slide active" data-slide="0">
+    <div class="intro-content">
+      <div class="intro-icon">🤖</div>
+      <div class="intro-badge">⏱ Estimasi 2-3 menit</div>
+      <h1 class="intro-title">AI × Mahasiswa FMIPA</h1>
+      <p class="intro-subtitle">Analisis Statistik Mengenai Tingkat Penggunaan, Persepsi dan Dampak Perangkat Artificial Intelligence (AI) Terhadap Proses Pembelajaran Mahasiswa FMIPA IPB University</p>
+      <p class="intro-meta">Kelompok 10 · ST2101 Metode Statistika</p>
+      <button class="btn-start" onclick="goNext()">
+        Mulai Isi Survey
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Q1: PRODI -->
+  <div class="slide" data-slide="1" data-key="prodi">
+    <div class="q-section-tag">Profil Demografis</div>
+    <div class="q-number">Pertanyaan 1 / 15</div>
+    <div class="q-text">Program Studi Anda saat ini?</div>
+    <div class="options-group">
+      <div class="option-btn" data-value="Kimia" onclick="selectOption(this)">
+        <span class="option-key">A</span>
+        <span class="option-label">Kimia</span>
+      </div>
+      <div class="option-btn" data-value="Biologi" onclick="selectOption(this)">
+        <span class="option-key">B</span>
+        <span class="option-label">Biologi</span>
+      </div>
+      <div class="option-btn" data-value="Fisika" onclick="selectOption(this)">
+        <span class="option-key">C</span>
+        <span class="option-label">Fisika</span>
+      </div>
+      <div class="option-btn" data-value="Bioinformatika" onclick="selectOption(this)">
+        <span class="option-key">D</span>
+        <span class="option-label">Bioinformatika</span>
+      </div>
+      <div class="option-btn" data-value="Geofisika dan Meteorologi" onclick="selectOption(this)">
+        <span class="option-key">E</span>
+        <span class="option-label">Geofisika dan Meteorologi</span>
+      </div>
+      <div class="option-btn" data-value="Biokimia" onclick="selectOption(this)">
+        <span class="option-key">F</span>
+        <span class="option-label">Biokimia</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>A</kbd>-<kbd>F</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q2: ANGKATAN -->
+  <div class="slide" data-slide="2" data-key="angkatan">
+    <div class="q-section-tag">Profil Demografis</div>
+    <div class="q-number">Pertanyaan 2 / 15</div>
+    <div class="q-text">Tahun angkatan berapa Anda?</div>
+    <div class="options-group">
+      <div class="option-btn" data-value="2021" onclick="selectOption(this)">
+        <span class="option-key">A</span>
+        <span class="option-label">2021</span>
+      </div>
+      <div class="option-btn" data-value="2022" onclick="selectOption(this)">
+        <span class="option-key">B</span>
+        <span class="option-label">2022</span>
+      </div>
+      <div class="option-btn" data-value="2023" onclick="selectOption(this)">
+        <span class="option-key">C</span>
+        <span class="option-label">2023</span>
+      </div>
+      <div class="option-btn" data-value="2024" onclick="selectOption(this)">
+        <span class="option-key">D</span>
+        <span class="option-label">2024</span>
+      </div>
+      <div class="option-btn" data-value="2025" onclick="selectOption(this)">
+        <span class="option-key">E</span>
+        <span class="option-label">2025</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>A</kbd>-<kbd>E</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q3: AI Umum -->
+  <div class="slide" data-slide="3" data-key="ai_umum">
+    <div class="q-section-tag">Intensitas Penggunaan AI</div>
+    <div class="q-number">Pertanyaan 3 / 15</div>
+    <div class="q-text">Seberapa sering Anda menggunakan perangkat AI (ChatGPT, Gemini, dll.) untuk keperluan akademik?</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Tidak Pernah</span>
+        <span class="likert-label-text">Sangat Sering</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q4: AI Riset -->
+  <div class="slide" data-slide="4" data-key="ai_riset">
+    <div class="q-section-tag">Intensitas Penggunaan AI</div>
+    <div class="q-number">Pertanyaan 4 / 15</div>
+    <div class="q-text">Seberapa sering Anda menggunakan AI spesifik penelitian (Perplexity, Mendeley AI) untuk mencari referensi literatur sains?</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Tidak Pernah</span>
+        <span class="likert-label-text">Sangat Sering</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q5: AI Mingguan -->
+  <div class="slide" data-slide="5" data-key="ai_mingguan">
+    <div class="q-section-tag">Intensitas Penggunaan AI</div>
+    <div class="q-number">Pertanyaan 5 / 15</div>
+    <div class="q-text">Seberapa sering Anda mengandalkan AI secara rutin dalam satu minggu untuk membantu pengerjaan laporan praktikum atau tugas harian?</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Tidak Pernah</span>
+        <span class="likert-label-text">Sangat Sering</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q6: TAM PEOU1 -->
+  <div class="slide" data-slide="6" data-key="tam_peou1">
+    <div class="q-section-tag">Technology Acceptance Model</div>
+    <div class="q-number">Pertanyaan 6 / 15</div>
+    <div class="q-text">Perangkat AI mudah dipelajari dan dioperasikan tanpa memerlukan usaha mental yang berlebih.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q7: TAM PEOU2 -->
+  <div class="slide" data-slide="7" data-key="tam_peou2">
+    <div class="q-section-tag">Technology Acceptance Model</div>
+    <div class="q-number">Pertanyaan 7 / 15</div>
+    <div class="q-text">Saya merasa antarmuka (interface) dari berbagai perangkat AI cukup sederhana dan mendukung alur kerja sebagai mahasiswa eksakta.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q8: TAM PU1 -->
+  <div class="slide" data-slide="8" data-key="tam_pu1">
+    <div class="q-section-tag">Technology Acceptance Model</div>
+    <div class="q-number">Pertanyaan 8 / 15</div>
+    <div class="q-text">Penggunaan AI terbukti mempercepat proses penyelesaian tugas akademik dan laporan praktikum saya.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q9: TAM PU2 -->
+  <div class="slide" data-slide="9" data-key="tam_pu2">
+    <div class="q-section-tag">Technology Acceptance Model</div>
+    <div class="q-number">Pertanyaan 9 / 15</div>
+    <div class="q-text">Perangkat AI membantu saya meningkatkan performa dan pemahaman kognitif terhadap materi perkuliahan.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q10: TAM PU3 -->
+  <div class="slide" data-slide="10" data-key="tam_pu3">
+    <div class="q-section-tag">Technology Acceptance Model</div>
+    <div class="q-number">Pertanyaan 10 / 15</div>
+    <div class="q-text">Secara keseluruhan, saya percaya bahwa AI adalah sarana yang krusial untuk meningkatkan kompetensi akademik saya.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q11: SRL Plan -->
+  <div class="slide" data-slide="11" data-key="srl_plan">
+    <div class="q-section-tag">Self-Regulated Learning</div>
+    <div class="q-number">Pertanyaan 11 / 15</div>
+    <div class="q-text">AI membantu saya merencanakan kerangka penulisan tugas atau eksperimen dengan lebih terstruktur.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q12: SRL Exec1 -->
+  <div class="slide" data-slide="12" data-key="srl_exec1">
+    <div class="q-section-tag">Self-Regulated Learning</div>
+    <div class="q-number">Pertanyaan 12 / 15</div>
+    <div class="q-text">Saya tetap mempertahankan orisinalitas pemikiran dengan melakukan verifikasi atau cross-check pada setiap data yang diberikan oleh AI.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q13: SRL Exec2 -->
+  <div class="slide" data-slide="13" data-key="srl_exec2">
+    <div class="q-section-tag">Self-Regulated Learning</div>
+    <div class="q-number">Pertanyaan 13 / 15</div>
+    <div class="q-text">Ketersediaan AI membuat saya lebih mandiri dalam mencari solusi atau memecahkan masalah akademis secara proaktif.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q14: SRL Eval1 -->
+  <div class="slide" data-slide="14" data-key="srl_eval1">
+    <div class="q-section-tag">Self-Regulated Learning</div>
+    <div class="q-number">Pertanyaan 14 / 15</div>
+    <div class="q-text">Saya menggunakan AI sebagai alat untuk mengevaluasi, mengoreksi, atau mencari masukan ulang pada draf tugas yang telah saya kerjakan.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-next" onclick="goNext()">Lanjut →</button>
+    </div>
+    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
+  </div>
+
+  <!-- Q15: SRL Risk (REVERSE) -->
+  <div class="slide" data-slide="15" data-key="srl_risk">
+    <div class="q-section-tag">Self-Regulated Learning</div>
+    <div class="q-number">Pertanyaan 15 / 15 · Terakhir! 🎉</div>
+    <div class="q-text">Penggunaan AI yang terus-menerus justru membuat saya merasa kehilangan percaya diri untuk menyelesaikan tugas murni tanpa bantuan teknologi.</div>
+    <div class="likert-container">
+      <div class="likert-scale">
+        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
+        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
+        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
+        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
+        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
+      </div>
+      <div class="likert-labels">
+        <span class="likert-label-text">Sangat Tidak Setuju</span>
+        <span class="likert-label-text">Sangat Setuju</span>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
+      <button class="btn-submit" id="submitBtn" onclick="submitSurvey()">
+        Kirim Jawaban 🚀
+      </button>
+    </div>
+  </div>
+
+  <!-- THANK YOU -->
+  <div class="slide" data-slide="16">
+    <div class="thankyou-content">
+      <div class="thankyou-emoji">🎊</div>
+      <h2 class="thankyou-title">Respons Terkirim!</h2>
+      <p class="thankyou-text">Terima kasih banyak atas partisipasi Anda dalam penelitian ini. Jawaban Anda sangat berarti bagi pengembangan ilmu pengetahuan di FMIPA IPB University.</p>
+      <div class="thankyou-stats">
+        <div class="stat-item">
+          <div class="stat-value">15</div>
+          <div class="stat-label">Pertanyaan Dijawab</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="timeTaken">-</div>
+          <div class="stat-label">Waktu Pengisian</div>
+        </div>
+      </div>
+      <p class="intro-meta">Kelompok 10 · ST2101 Metode Statistika · IPB University</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrxGwhOK5RMGqwBGuo7kUQOs0fU0KixsNTFGpya_TWfm0ulT-AMnCrRZ5l-OZ_pC3o/exec';
+
+let current = 0;
+const totalQuestions = 15;
+const totalSlides = 17; // 0=intro, 1-15=questions, 16=thankyou
+const answers = {};
+let startTime = null;
+let submitted = false;
+
+// ===== NAVIGATION =====
+function goNext() {
+  if (current === 0) {
+    startTime = Date.now();
+  }
+  if (current >= 1 && current <= 15) {
+    const slide = document.querySelector(`[data-slide="${current}"]`);
+    const key = slide.dataset.key;
+    if (!answers[key]) {
+      slide.classList.add('shake');
+      setTimeout(() => slide.classList.remove('shake'), 400);
+      return;
+    }
+  }
+  if (current < 15) {
+    navigateTo(current + 1);
+  }
+}
+
+function goPrev() {
+  if (current > 0) {
+    navigateTo(current - 1, true);
+  }
+}
+
+function navigateTo(target, reverse = false) {
+  const currentSlide = document.querySelector(`[data-slide="${current}"]`);
+  const targetSlide = document.querySelector(`[data-slide="${target}"]`);
+
+  currentSlide.classList.remove('active');
+  currentSlide.classList.add(reverse ? '' : 'exit-up');
+
+  setTimeout(() => {
+    currentSlide.classList.remove('exit-up');
+    currentSlide.style.transform = reverse ? 'translateY(60px)' : '';
+  }, 550);
+
+  current = target;
+  targetSlide.classList.add('active');
+
+  updateProgress();
+
+  // Show/hide progress bar
+  document.getElementById('progressBar').style.display = current >= 1 && current <= 15 ? '' : 'none';
+}
+
+function updateProgress() {
+  const pct = current <= 0 ? 0 : Math.round((Math.min(current, totalQuestions) / totalQuestions) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = pct + '%';
+}
+
+// ===== OPTION SELECT =====
+function selectOption(el) {
+  const group = el.closest('.options-group');
+  group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+
+  const slide = el.closest('.slide');
+  const key = slide.dataset.key;
+  answers[key] = el.dataset.value;
+
+  // Auto-advance after short delay
+  setTimeout(() => goNext(), 350);
+}
+
+function selectLikert(el) {
+  const group = el.closest('.likert-scale');
+  group.querySelectorAll('.likert-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+
+  const slide = el.closest('.slide');
+  const key = slide.dataset.key;
+  answers[key] = parseInt(el.dataset.value);
+
+  setTimeout(() => {
+    if (current < 15) goNext();
+  }, 350);
+}
+
+// ===== KEYBOARD SUPPORT =====
+document.addEventListener('keydown', (e) => {
+  if (submitted) return;
+
+  const slide = document.querySelector(`[data-slide="${current}"]`);
+  if (!slide) return;
+
+  // Enter = next
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (current === 15) {
+      submitSurvey();
+    } else {
+      goNext();
+    }
+    return;
+  }
+
+  // Backspace = prev
+  if (e.key === 'Backspace') {
+    e.preventDefault();
+    goPrev();
+    return;
+  }
+
+  // Number keys for likert
+  const likertBtns = slide.querySelectorAll('.likert-btn');
+  if (likertBtns.length > 0 && e.key >= '1' && e.key <= '5') {
+    e.preventDefault();
+    likertBtns[parseInt(e.key) - 1].click();
+    return;
+  }
+
+  // Letter keys for options
+  const optionBtns = slide.querySelectorAll('.option-btn');
+  if (optionBtns.length > 0) {
+    const idx = e.key.toLowerCase().charCodeAt(0) - 97; // a=0, b=1...
+    if (idx >= 0 && idx < optionBtns.length) {
+      e.preventDefault();
+      optionBtns[idx].click();
+    }
+  }
+});
+
+// ===== SUBMIT =====
+async function submitSurvey() {
+  // Validate last question
+  const slide = document.querySelector(`[data-slide="15"]`);
+  const key = slide.dataset.key;
+  if (!answers[key]) {
+    slide.classList.add('shake');
+    setTimeout(() => slide.classList.remove('shake'), 400);
+    return;
+  }
+
+  if (submitted) return;
+  submitted = true;
+
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('show');
+
+  const payload = {
+    prodi: answers.prodi,
+    angkatan: answers.angkatan,
+    ai_umum: answers.ai_umum,
+    ai_riset: answers.ai_riset,
+    ai_mingguan: answers.ai_mingguan,
+    tam_peou1: answers.tam_peou1,
+    tam_peou2: answers.tam_peou2,
+    tam_pu1: answers.tam_pu1,
+    tam_pu2: answers.tam_pu2,
+    tam_pu3: answers.tam_pu3,
+    srl_plan: answers.srl_plan,
+    srl_exec1: answers.srl_exec1,
+    srl_exec2: answers.srl_exec2,
+    srl_eval1: answers.srl_eval1,
+    srl_risk: answers.srl_risk
+  };
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.log('Submitted (no-cors mode)');
+  }
+
+  // Calculate time
+  const elapsed = Math.round((Date.now() - startTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  document.getElementById('timeTaken').textContent = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+  overlay.classList.remove('show');
+  document.getElementById('progressBar').style.display = 'none';
+  navigateTo(16);
+  launchConfetti();
+}
+
+// ===== CONFETTI =====
+function launchConfetti() {
+  const zone = document.getElementById('confettiZone');
+  const colors = ['#6ee7b7', '#34d399', '#38bdf8', '#a78bfa', '#fbbf24', '#f87171', '#fb923c', '#e879f9'];
+
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.width = (Math.random() * 8 + 5) + 'px';
+    piece.style.height = (Math.random() * 8 + 5) + 'px';
+    piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    piece.style.animationDelay = (Math.random() * 1.5) + 's';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    zone.appendChild(piece);
+  }
+
+  setTimeout(() => { zone.innerHTML = ''; }, 5000);
+}
+
+// ===== TOUCH SWIPE SUPPORT =====
+let touchStartY = 0;
+document.addEventListener('touchstart', (e) => {
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', (e) => {
+  const diff = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(diff) > 60) {
+    if (diff > 0) goNext();
+    else goPrev();
+  }
+}, { passive: true });
+
+// ===== RESTORE ANSWERS ON BACK =====
+document.querySelectorAll('.slide').forEach(slide => {
+  const observer = new MutationObserver(() => {
+    if (slide.classList.contains('active')) {
+      const key = slide.dataset.key;
+      if (!key || !answers[key]) return;
+
+      // Restore option selection
+      const opts = slide.querySelectorAll('.option-btn');
+      opts.forEach(o => {
+        o.classList.toggle('selected', o.dataset.value === answers[key]);
+      });
+
+      // Restore likert selection
+      const likers = slide.querySelectorAll('.likert-btn');
+      likers.forEach(l => {
+        l.classList.toggle('selected', parseInt(l.dataset.value) === answers[key]);
+      });
+    }
+  });
+  observer.observe(slide, { attributes: true, attributeFilter: ['class'] });
+});
+</script>
+
+</body>
+</html>
