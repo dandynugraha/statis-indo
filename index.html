@@ -214,7 +214,7 @@ body{
   <div class="intro-badge">⏱ Estimasi 2–3 menit</div>
   <h1 class="intro-title">AI × Mahasiswa FMIPA</h1>
   <p class="intro-sub">Analisis Statistik Mengenai Tingkat Penggunaan, Persepsi dan Dampak Perangkat Artificial Intelligence (AI) Terhadap Proses Pembelajaran Mahasiswa FMIPA IPB University</p>
-  <p class="intro-meta">Kelompok 10 · ST2101 Metode Statistika</p>
+  <p class="intro-meta">Kelompok 10 · ST21 Bahasa Indonesia</p>
   <button class="btn-start" onclick="next()">Mulai Isi Survey <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
 </div></div>
 
@@ -365,13 +365,15 @@ body{
   <h2 class="ty-title">Respons Terkirim!</h2>
   <p class="ty-text">Terima kasih banyak atas partisipasi Anda dalam penelitian ini. Jawaban Anda sangat berarti bagi pengembangan ilmu pengetahuan di FMIPA IPB University.</p>
   <div class="ty-stats"><div style="text-align:center"><div class="stat-val">15</div><div class="stat-lbl">Pertanyaan Dijawab</div></div><div style="text-align:center"><div class="stat-val" id="timeVal">-</div><div class="stat-lbl">Waktu Pengisian</div></div></div>
-  <p class="intro-meta">Kelompok 10 · ST2101 Metode Statistika · IPB University</p>
+  <p class="intro-meta">Kelompok 10 · ST21 Bahasa Indonesia · IPB University</p>
+  <p style="font-size:12px;color:var(--t3);margin-top:16px" id="countdownText">Kembali ke halaman awal dalam <span id="cdNum">8</span> detik...</p>
+  <button class="btn-start" style="margin-top:16px;font-size:14px;padding:12px 28px" onclick="location.reload()">Isi Ulang Survey ↻</button>
 </div></div>
 
 </div>
 
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxrxGwhOK5RMGqwBGuo7kUQOs0fU0KixsNTFGpya_TWfm0ulT-AMnCrRZ5l-OZ_pC3o/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyzHjFHZmxXCSh6YC9a0wkQWUxtjJ9m23DTr--120tARQ-nx6ogEujiBGJ_kMxQUXsp/exec';
 const LAST_Q=16,TY_SLIDE=17,TOTAL_Q=15;
 let cur=0,busy=false,done=false,answers={},startTime=null;
 
@@ -550,6 +552,7 @@ async function submitSurvey(){
     sl(TY_SLIDE).classList.add('active');
     cur=TY_SLIDE;busy=false;
     launchConfetti();
+    startCountdown();
   },420);
 }
 
@@ -585,6 +588,17 @@ function launchConfetti(){
     z.appendChild(p);
   }
   setTimeout(()=>z.innerHTML='',5000);
+}
+
+/* --- Auto-refresh countdown --- */
+function startCountdown(){
+  let sec=8;
+  const iv=setInterval(()=>{
+    sec--;
+    const el=$('cdNum');
+    if(el)el.textContent=sec;
+    if(sec<=0){clearInterval(iv);location.reload()}
+  },1000);
 }
 </script>
 </body>
