@@ -3,1319 +3,589 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e17">
 <title>Survey AI × FMIPA IPB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg-primary: #0a0e17;
-  --bg-secondary: #111827;
-  --bg-card: #1a2233;
-  --accent: #6ee7b7;
-  --accent-dim: #34d399;
-  --accent-glow: rgba(110, 231, 183, 0.15);
-  --accent-glow-strong: rgba(110, 231, 183, 0.3);
-  --text-primary: #f0fdf4;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border: rgba(110, 231, 183, 0.12);
-  --border-active: rgba(110, 231, 183, 0.4);
-  --danger: #f87171;
-  --font-display: 'Plus Jakarta Sans', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html, body {
-  height: 100%;
-  overflow: hidden;
-  font-family: var(--font-display);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ===== BACKGROUND EFFECTS ===== */
-.bg-mesh {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-}
-.bg-mesh::before {
-  content: '';
-  position: absolute;
-  width: 600px; height: 600px;
-  top: -200px; right: -200px;
-  background: radial-gradient(circle, rgba(110,231,183,0.06) 0%, transparent 70%);
-  animation: drift 20s ease-in-out infinite;
-}
-.bg-mesh::after {
-  content: '';
-  position: absolute;
-  width: 500px; height: 500px;
-  bottom: -150px; left: -150px;
-  background: radial-gradient(circle, rgba(56,189,248,0.04) 0%, transparent 70%);
-  animation: drift 25s ease-in-out infinite reverse;
-}
-@keyframes drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(40px, -30px) scale(1.1); }
-}
-
-.grid-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background-image: 
-    linear-gradient(rgba(110,231,183,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(110,231,183,0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-
-/* ===== PROGRESS BAR ===== */
-.progress-container {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  padding: 0;
-  background: rgba(10, 14, 23, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-}
-.progress-inner {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.progress-track {
-  flex: 1;
-  height: 4px;
-  background: rgba(110,231,183,0.08);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
-  border-radius: 99px;
-  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 0 12px var(--accent-glow);
-}
-.progress-label {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--accent);
-  min-width: 42px;
-  text-align: right;
-  letter-spacing: 0.5px;
-}
-
-/* ===== MAIN CONTAINER ===== */
-.survey-container {
-  position: relative;
-  z-index: 1;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px 20px;
-}
-
-/* ===== SLIDES ===== */
-.slide {
-  position: absolute;
-  width: 100%;
-  max-width: 580px;
-  padding: 0 20px;
-  opacity: 0;
-  transform: translateY(60px);
-  pointer-events: none;
-  transition: all 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.slide.active {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: all;
-}
-.slide.exit-up {
-  opacity: 0;
-  transform: translateY(-60px);
-  pointer-events: none;
-}
-
-/* ===== QUESTION STYLING ===== */
-.q-number {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--accent-dim);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.q-number::after {
-  content: '';
-  flex: 1;
-  max-width: 40px;
-  height: 1px;
-  background: var(--accent-dim);
-  opacity: 0.4;
-}
-.q-section-tag {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--accent);
-  background: var(--accent-glow);
-  padding: 3px 10px;
-  border-radius: 99px;
-  border: 1px solid var(--border);
-  margin-bottom: 16px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-.q-text {
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--text-primary);
-  margin-bottom: 32px;
-}
-@media (max-width: 480px) {
-  .q-text { font-size: 17px; }
-}
-
-/* ===== OPTIONS (Radio/Select) ===== */
-.options-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.option-btn {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  background: var(--bg-card);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  position: relative;
-  overflow: hidden;
-}
-.option-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--accent-glow), transparent);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-.option-btn:hover {
-  border-color: var(--border-active);
-  transform: translateX(4px);
-}
-.option-btn:hover::before { opacity: 1; }
-.option-btn.selected {
-  border-color: var(--accent);
-  background: rgba(110,231,183,0.08);
-  box-shadow: 0 0 20px var(--accent-glow);
-}
-.option-btn.selected::before { opacity: 1; }
-.option-key {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
-  transition: all 0.25s ease;
-}
-.option-btn.selected .option-key {
-  color: var(--bg-primary);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-.option-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  position: relative;
-  z-index: 1;
-  transition: color 0.25s ease;
-}
-.option-btn.selected .option-label { color: var(--text-primary); }
-
-/* ===== LIKERT SCALE ===== */
-.likert-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.likert-scale {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-.likert-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  border: 1.5px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-.likert-btn:hover {
-  border-color: var(--border-active);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-}
-.likert-btn.selected {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--bg-primary);
-  transform: translateY(-4px) scale(1.08);
-  box-shadow: 0 8px 24px var(--accent-glow-strong);
-}
-.likert-labels {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 4px;
-}
-.likert-label-text {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-@media (max-width: 380px) {
-  .likert-btn { width: 48px; height: 48px; font-size: 14px; }
-  .likert-scale { gap: 6px; }
-}
-
-/* ===== SELECT INPUT ===== */
-.select-input {
-  width: 100%;
-  padding: 14px 18px;
-  background: var(--bg-card);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  transition: all 0.25s ease;
-}
-.select-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 20px var(--accent-glow);
-}
-.select-input option {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-/* ===== NAVIGATION ===== */
-.nav-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 36px;
-  gap: 12px;
-}
-.btn-next, .btn-prev, .btn-submit {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  letter-spacing: 0.3px;
-}
-.btn-next {
-  padding: 12px 28px;
-  background: var(--accent);
-  color: var(--bg-primary);
-  margin-left: auto;
-}
-.btn-next:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--accent-glow-strong);
-}
-.btn-next:active { transform: translateY(0); }
-.btn-prev {
-  padding: 12px 20px;
-  background: transparent;
-  color: var(--text-muted);
-  border: 1.5px solid var(--border);
-}
-.btn-prev:hover {
-  color: var(--text-primary);
-  border-color: var(--border-active);
-}
-.btn-submit {
-  padding: 14px 36px;
-  background: linear-gradient(135deg, var(--accent-dim), var(--accent));
-  color: var(--bg-primary);
-  font-size: 15px;
-  margin-left: auto;
-}
-.btn-submit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px var(--accent-glow-strong);
-}
-.btn-submit:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.hint-text {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 12px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.3px;
-}
-.hint-text kbd {
-  display: inline-block;
-  padding: 1px 6px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  font-size: 11px;
-  margin: 0 2px;
-}
-
-/* ===== INTRO SLIDE ===== */
-.intro-content {
-  text-align: center;
-}
-.intro-icon {
-  font-size: 48px;
-  margin-bottom: 20px;
-  animation: float 3s ease-in-out infinite;
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-.intro-title {
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1.35;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, var(--text-primary), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.intro-subtitle {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: 8px;
-  max-width: 460px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.intro-meta {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 32px;
-  letter-spacing: 0.5px;
-}
-.intro-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: var(--accent-glow);
-  border: 1px solid var(--border);
-  border-radius: 99px;
-  font-size: 12px;
-  color: var(--accent);
-  font-weight: 500;
-  margin-bottom: 28px;
-}
-.btn-start {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 40px;
-  background: linear-gradient(135deg, var(--accent-dim), var(--accent));
-  color: var(--bg-primary);
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  border: none;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  letter-spacing: 0.3px;
-}
-.btn-start:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px var(--accent-glow-strong);
-}
-
-/* ===== THANK YOU SLIDE ===== */
-.thankyou-content {
-  text-align: center;
-}
-.confetti-zone {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 200;
-}
-.confetti-piece {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  top: -20px;
-  animation: confettiFall linear forwards;
-}
-@keyframes confettiFall {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-}
-.thankyou-emoji {
-  font-size: 64px;
-  margin-bottom: 20px;
-  animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes popIn {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); opacity: 1; }
-}
-.thankyou-title {
-  font-size: 28px;
-  font-weight: 800;
-  margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--accent), #38bdf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.thankyou-text {
-  font-size: 15px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  max-width: 420px;
-  margin: 0 auto 24px;
-}
-.thankyou-stats {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-bottom: 28px;
-}
-.stat-item {
-  text-align: center;
-}
-.stat-value {
-  font-family: var(--font-mono);
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--accent);
-}
-.stat-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
-/* ===== LOADING OVERLAY ===== */
-.loading-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 150;
-  background: rgba(10, 14, 23, 0.92);
-  backdrop-filter: blur(10px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 20px;
-}
-.loading-overlay.show { display: flex; }
-.spinner {
-  width: 40px; height: 40px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text {
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-/* ===== ERROR SHAKE ===== */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-8px); }
-  75% { transform: translateX(8px); }
-}
-.shake { animation: shake 0.4s ease; }
-
-/* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0e17;--card:#1a2233;
+  --acc:#6ee7b7;--acc2:#34d399;
+  --glo:rgba(110,231,183,.15);--glo2:rgba(110,231,183,.3);
+  --t1:#f0fdf4;--t2:#94a3b8;--t3:#64748b;
+  --bdr:rgba(110,231,183,.12);--bdr2:rgba(110,231,183,.4);
+  --red:#f87171;
+  --f1:'Plus Jakarta Sans',sans-serif;--f2:'Space Mono',monospace;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+  --app-h:100vh;
+}
+html{height:100%;overflow:hidden}
+body{
+  height:var(--app-h);overflow:hidden;
+  font-family:var(--f1);background:var(--bg);color:var(--t1);
+  -webkit-font-smoothing:antialiased;
+  position:fixed;width:100%;
+  overscroll-behavior:none;
+}
+.bgm{position:fixed;inset:0;z-index:0;pointer-events:none}
+.bgm::before{content:'';position:absolute;width:500px;height:500px;top:-180px;right:-180px;background:radial-gradient(circle,rgba(110,231,183,.06),transparent 70%);animation:drift 20s ease-in-out infinite}
+.bgm::after{content:'';position:absolute;width:400px;height:400px;bottom:-120px;left:-120px;background:radial-gradient(circle,rgba(56,189,248,.04),transparent 70%);animation:drift 25s ease-in-out infinite reverse}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.1)}}
+.grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(110,231,183,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(110,231,183,.02) 1px,transparent 1px);background-size:60px 60px}
+.prog{position:fixed;top:0;left:0;right:0;z-index:100;padding-top:var(--safe-t);background:rgba(10,14,23,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);opacity:0;pointer-events:none;transition:opacity .3s}
+.prog.show{opacity:1;pointer-events:all}
+.prog-in{max-width:560px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:12px}
+.prog-tr{flex:1;height:4px;background:rgba(110,231,183,.08);border-radius:99px;overflow:hidden}
+.prog-fl{height:100%;width:0%;background:linear-gradient(90deg,var(--acc2),var(--acc));border-radius:99px;transition:width .5s cubic-bezier(.22,1,.36,1);box-shadow:0 0 12px var(--glo)}
+.prog-lb{font-family:var(--f2);font-size:12px;color:var(--acc);min-width:40px;text-align:right}
+.container{
+  position:relative;z-index:1;
+  width:100%;height:var(--app-h);
+  display:flex;align-items:center;justify-content:center;
+  padding:68px 16px calc(20px + var(--safe-b));
+  overflow:hidden;
+}
+.slide{
+  position:absolute;
+  width:calc(100% - 32px);max-width:560px;
+  opacity:0;
+  transform:translateY(50px);
+  pointer-events:none;
+  transition:opacity .4s cubic-bezier(.22,1,.36,1),transform .4s cubic-bezier(.22,1,.36,1);
+  will-change:opacity,transform;
+}
+.slide.active{opacity:1;transform:translateY(0);pointer-events:all}
+.slide.exit-up{opacity:0;transform:translateY(-50px);pointer-events:none}
+.slide.exit-down{opacity:0;transform:translateY(50px);pointer-events:none}
+.tag{display:inline-block;font-family:var(--f2);font-size:10px;color:var(--acc);background:var(--glo);padding:3px 10px;border-radius:99px;border:1px solid var(--bdr);margin-bottom:14px;letter-spacing:1px;text-transform:uppercase}
+.qnum{font-family:var(--f2);font-size:12px;color:var(--acc2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.qnum::after{content:'';flex:1;max-width:40px;height:1px;background:var(--acc2);opacity:.4}
+.qtext{font-size:19px;font-weight:600;line-height:1.55;margin-bottom:28px}
+.text-input{
+  width:100%;padding:14px 18px;
+  background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;
+  color:var(--t1);font-family:var(--f1);font-size:15px;font-weight:500;
+  outline:none;transition:border-color .25s,box-shadow .25s;
+  -webkit-appearance:none;appearance:none;
+}
+.text-input::placeholder{color:var(--t3)}
+.text-input:focus{border-color:var(--acc);box-shadow:0 0 20px var(--glo)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;background:var(--card);
+  border:1.5px solid var(--bdr);border-radius:12px;
+  cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden;
+  -webkit-user-select:none;user-select:none;
+}
+.opt::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--glo),transparent);opacity:0;transition:opacity .2s}
+.opt:active{border-color:var(--bdr2)}
+.opt:active::before{opacity:1}
+@media(hover:hover){.opt:hover{border-color:var(--bdr2);transform:translateX(3px)}.opt:hover::before{opacity:1}}
+.opt.sel{border-color:var(--acc);background:rgba(110,231,183,.08);box-shadow:0 0 16px var(--glo)}
+.opt.sel::before{opacity:1}
+.okey{font-family:var(--f2);font-size:11px;font-weight:700;color:var(--t3);width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bdr);border-radius:6px;flex-shrink:0;position:relative;z-index:1;transition:all .2s}
+.opt.sel .okey{color:var(--bg);background:var(--acc);border-color:var(--acc)}
+.olabel{font-size:14px;font-weight:500;color:var(--t2);position:relative;z-index:1;transition:color .2s}
+.opt.sel .olabel{color:var(--t1)}
+.lik-wrap{display:flex;flex-direction:column;gap:6px}
+.lik-row{display:flex;gap:10px;justify-content:center;margin-bottom:8px}
+.lik{
+  flex:1;max-width:60px;aspect-ratio:1;
+  border-radius:12px;border:1.5px solid var(--bdr);
+  background:var(--card);color:var(--t2);
+  font-family:var(--f2);font-size:16px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .25s cubic-bezier(.22,1,.36,1);
+  -webkit-user-select:none;user-select:none;
+}
+.lik:active{transform:scale(.92)}
+@media(hover:hover){.lik:hover{border-color:var(--bdr2);transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.3)}}
+.lik.sel{border-color:var(--acc);background:var(--acc);color:var(--bg);transform:translateY(-3px) scale(1.06);box-shadow:0 8px 24px var(--glo2)}
+.lik-labels{display:flex;justify-content:space-between;padding:0 2px}
+.lik-lt{font-size:11px;color:var(--t3);font-weight:500}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px}
+.btn{font-family:var(--f1);font-size:14px;font-weight:600;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px;-webkit-user-select:none;user-select:none;transition:all .2s}
+.btn-back{padding:11px 18px;background:transparent;color:var(--t3);border:1.5px solid var(--bdr)}
+.btn-back:active{opacity:.7}
+@media(hover:hover){.btn-back:hover{color:var(--t1);border-color:var(--bdr2)}}
+.btn-next{padding:12px 26px;background:var(--acc);color:var(--bg);margin-left:auto}
+.btn-next:active{transform:scale(.96)}
+.btn-submit{padding:14px 32px;background:linear-gradient(135deg,var(--acc2),var(--acc));color:var(--bg);font-size:15px;font-weight:700;margin-left:auto}
+.btn-submit:active{transform:scale(.96)}
+.hint{font-size:10px;color:var(--t3);margin-top:10px;font-family:var(--f2);letter-spacing:.3px}
+.hint kbd{display:inline-block;padding:1px 5px;background:rgba(255,255,255,.06);border:1px solid var(--bdr);border-radius:4px;font-size:10px;margin:0 1px}
+@media(hover:none)and(pointer:coarse){.hint{display:none}}
+.err-msg{font-size:12px;color:var(--red);margin-top:8px;opacity:0;transition:opacity .2s;pointer-events:none}
+.err-msg.show{opacity:1}
+.intro{text-align:center}
+.intro-icon{font-size:44px;margin-bottom:18px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.intro-title{font-size:24px;font-weight:800;line-height:1.35;margin-bottom:10px;background:linear-gradient(135deg,var(--t1),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-sub{font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:8px;max-width:440px;margin-left:auto;margin-right:auto}
+.intro-meta{font-family:var(--f2);font-size:11px;color:var(--t3);margin-bottom:28px;letter-spacing:.5px}
+.intro-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;background:var(--glo);border:1px solid var(--bdr);border-radius:99px;font-size:12px;color:var(--acc);font-weight:500;margin-bottom:24px}
+.btn-start{display:inline-flex;align-items:center;gap:10px;padding:15px 36px;background:linear-gradient(135deg,var(--acc2),var(--acc));color:var(--bg);font-family:var(--f1);font-size:15px;font-weight:700;border:none;border-radius:14px;cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1)}
+.btn-start:active{transform:scale(.96)}
+@media(hover:hover){.btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--glo2)}}
+.thankyou{text-align:center}
+.ty-emoji{font-size:56px;margin-bottom:18px;animation:popIn .6s cubic-bezier(.22,1,.36,1)}
+@keyframes popIn{0%{transform:scale(0);opacity:0}50%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+.ty-title{font-size:26px;font-weight:800;margin-bottom:10px;background:linear-gradient(135deg,var(--acc),#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ty-text{font-size:14px;color:var(--t2);line-height:1.7;max-width:400px;margin:0 auto 20px}
+.ty-stats{display:flex;justify-content:center;gap:24px;margin-bottom:24px}
+.stat-val{font-family:var(--f2);font-size:22px;font-weight:700;color:var(--acc)}
+.stat-lbl{font-size:11px;color:var(--t3);margin-top:3px}
+.confetti-zone{position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden}
+.confetti-piece{position:absolute;top:-20px;animation:confettiFall linear forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+.loading{position:fixed;inset:0;z-index:150;background:rgba(10,14,23,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;opacity:0;pointer-events:none;transition:opacity .3s}
+.loading.show{opacity:1;pointer-events:all}
+.spinner{width:36px;height:36px;border:3px solid var(--bdr);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-text{font-size:14px;color:var(--t2);font-weight:500}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media(max-width:480px){
+  .qtext{font-size:17px;margin-bottom:22px}
+  .intro-title{font-size:21px}
+  .intro-sub{font-size:12px}
+  .container{padding:65px 14px calc(16px + var(--safe-b))}
+  .opt{padding:12px 14px}
+  .olabel{font-size:13px}
+  .lik{border-radius:10px;font-size:15px}
+  .lik-row{gap:8px}
+  .nav{margin-top:22px}
+  .ty-title{font-size:22px}
+}
+@media(max-width:360px){.qtext{font-size:16px}.lik-row{gap:6px}.olabel{font-size:12px}}
+@media(max-height:680px){
+  .qtext{font-size:16px;margin-bottom:18px}
+  .nav{margin-top:18px}
+  .opt{padding:10px 14px}
+  .opts{gap:6px}
+  .intro-icon{font-size:36px;margin-bottom:12px}
+  .intro-title{font-size:20px}
+  .intro-badge{margin-bottom:16px}
+  .intro-sub{margin-bottom:4px}
+  .intro-meta{margin-bottom:20px}
+}
+.audio-btn{
+  position:fixed;bottom:20px;right:20px;z-index:110;
+  width:44px;height:44px;border-radius:50%;border:1.5px solid var(--bdr);
+  background:rgba(26,34,51,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .25s;opacity:0;pointer-events:none;
+  padding-bottom:var(--safe-b);
+}
+.audio-btn.show{opacity:1;pointer-events:all}
+.audio-btn:active{transform:scale(.9)}
+@media(hover:hover){.audio-btn:hover{border-color:var(--acc);box-shadow:0 0 16px var(--glo)}}
+.audio-btn svg{width:20px;height:20px;stroke:var(--t2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.audio-btn:hover svg{stroke:var(--acc)}
+.audio-btn .icon-on,.audio-btn .icon-off{position:absolute}
+.audio-btn .icon-off{display:none}
+.audio-btn.muted .icon-on{display:none}
+.audio-btn.muted .icon-off{display:block}
+@media(max-width:480px){.audio-btn{bottom:16px;right:16px;width:40px;height:40px}.audio-btn svg{width:18px;height:18px}}
 </style>
 </head>
 <body>
+<div class="bgm"></div>
+<div class="grid"></div>
+<div class="prog" id="prog"><div class="prog-in"><div class="prog-tr"><div class="prog-fl" id="progFill"></div></div><span class="prog-lb" id="progLabel">0%</span></div></div>
+<div class="loading" id="loading"><div class="spinner"></div><div class="load-text">Mengirim respons Anda...</div></div>
+<div class="confetti-zone" id="confetti"></div>
 
-<div class="bg-mesh"></div>
-<div class="grid-overlay"></div>
+<audio id="bgm" loop preload="auto"><source src="sound.mp3" type="audio/mpeg"></audio>
+<button class="audio-btn" id="audioBtn" onclick="toggleAudio()">
+  <svg class="icon-on" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+  <svg class="icon-off" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+</button>
 
-<div class="progress-container" id="progressBar" style="display:none;">
-  <div class="progress-inner">
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-    <span class="progress-label" id="progressLabel">0%</span>
-  </div>
+<div class="container">
+
+<div class="slide active" id="s0"><div class="intro">
+  <div class="intro-icon">🤖</div>
+  <div class="intro-badge">⏱ Estimasi 2–3 menit</div>
+  <h1 class="intro-title">AI × Mahasiswa FMIPA</h1>
+  <p class="intro-sub">Analisis Statistik Mengenai Tingkat Penggunaan, Persepsi dan Dampak Perangkat Artificial Intelligence (AI) Terhadap Proses Pembelajaran Mahasiswa FMIPA IPB University</p>
+  <p class="intro-meta">Kelompok 10 · ST2101 Metode Statistika</p>
+  <button class="btn-start" onclick="next()">Mulai Isi Survey <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+</div></div>
+
+<div class="slide" id="s1" data-key="nama">
+  <div class="tag">Identitas</div>
+  <div class="qnum">Sebelum mulai —</div>
+  <div class="qtext">Siapa nama lengkap Anda?</div>
+  <input type="text" class="text-input" id="inputNama" placeholder="Ketik nama Anda di sini..." autocomplete="name" inputmode="text">
+  <div class="err-msg" id="errNama">Mohon isi nama Anda terlebih dahulu</div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>Enter</kbd> untuk lanjut</div>
 </div>
 
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text">Mengirim respons Anda...</div>
+<div class="slide" id="s2" data-key="prodi">
+  <div class="tag">Profil Demografis</div><div class="qnum">Pertanyaan 1 / 15</div>
+  <div class="qtext">Program Studi Anda saat ini?</div>
+  <div class="opts">
+    <div class="opt" data-v="Kimia" onclick="pickOpt(this)"><span class="okey">A</span><span class="olabel">Kimia</span></div>
+    <div class="opt" data-v="Biologi" onclick="pickOpt(this)"><span class="okey">B</span><span class="olabel">Biologi</span></div>
+    <div class="opt" data-v="Fisika" onclick="pickOpt(this)"><span class="okey">C</span><span class="olabel">Fisika</span></div>
+    <div class="opt" data-v="Bioinformatika" onclick="pickOpt(this)"><span class="okey">D</span><span class="olabel">Bioinformatika</span></div>
+    <div class="opt" data-v="Geofisika dan Meteorologi" onclick="pickOpt(this)"><span class="okey">E</span><span class="olabel">Geofisika dan Meteorologi</span></div>
+    <div class="opt" data-v="Biokimia" onclick="pickOpt(this)"><span class="okey">F</span><span class="olabel">Biokimia</span></div>
+  </div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>A</kbd>–<kbd>F</kbd> · <kbd>Enter</kbd> lanjut</div>
 </div>
 
-<div class="confetti-zone" id="confettiZone"></div>
-
-<div class="survey-container" id="surveyContainer">
-
-  <!-- INTRO -->
-  <div class="slide active" data-slide="0">
-    <div class="intro-content">
-      <div class="intro-icon">🤖</div>
-      <div class="intro-badge">⏱ Estimasi 2-3 menit</div>
-      <h1 class="intro-title">AI × Mahasiswa FMIPA</h1>
-      <p class="intro-subtitle">Analisis Statistik Mengenai Tingkat Penggunaan, Persepsi dan Dampak Perangkat Artificial Intelligence (AI) Terhadap Proses Pembelajaran Mahasiswa FMIPA IPB University</p>
-      <p class="intro-meta">Kelompok 10 · ST2101 Metode Statistika</p>
-      <button class="btn-start" onclick="goNext()">
-        Mulai Isi Survey
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
+<div class="slide" id="s3" data-key="angkatan">
+  <div class="tag">Profil Demografis</div><div class="qnum">Pertanyaan 2 / 15</div>
+  <div class="qtext">Tahun angkatan berapa Anda?</div>
+  <div class="opts">
+    <div class="opt" data-v="2021" onclick="pickOpt(this)"><span class="okey">A</span><span class="olabel">2021</span></div>
+    <div class="opt" data-v="2022" onclick="pickOpt(this)"><span class="okey">B</span><span class="olabel">2022</span></div>
+    <div class="opt" data-v="2023" onclick="pickOpt(this)"><span class="okey">C</span><span class="olabel">2023</span></div>
+    <div class="opt" data-v="2024" onclick="pickOpt(this)"><span class="okey">D</span><span class="olabel">2024</span></div>
+    <div class="opt" data-v="2025" onclick="pickOpt(this)"><span class="okey">E</span><span class="olabel">2025</span></div>
   </div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>A</kbd>–<kbd>E</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q1: PRODI -->
-  <div class="slide" data-slide="1" data-key="prodi">
-    <div class="q-section-tag">Profil Demografis</div>
-    <div class="q-number">Pertanyaan 1 / 15</div>
-    <div class="q-text">Program Studi Anda saat ini?</div>
-    <div class="options-group">
-      <div class="option-btn" data-value="Kimia" onclick="selectOption(this)">
-        <span class="option-key">A</span>
-        <span class="option-label">Kimia</span>
-      </div>
-      <div class="option-btn" data-value="Biologi" onclick="selectOption(this)">
-        <span class="option-key">B</span>
-        <span class="option-label">Biologi</span>
-      </div>
-      <div class="option-btn" data-value="Fisika" onclick="selectOption(this)">
-        <span class="option-key">C</span>
-        <span class="option-label">Fisika</span>
-      </div>
-      <div class="option-btn" data-value="Bioinformatika" onclick="selectOption(this)">
-        <span class="option-key">D</span>
-        <span class="option-label">Bioinformatika</span>
-      </div>
-      <div class="option-btn" data-value="Geofisika dan Meteorologi" onclick="selectOption(this)">
-        <span class="option-key">E</span>
-        <span class="option-label">Geofisika dan Meteorologi</span>
-      </div>
-      <div class="option-btn" data-value="Biokimia" onclick="selectOption(this)">
-        <span class="option-key">F</span>
-        <span class="option-label">Biokimia</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>A</kbd>-<kbd>F</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s4" data-key="ai_umum">
+  <div class="tag">Intensitas Penggunaan AI</div><div class="qnum">Pertanyaan 3 / 15</div>
+  <div class="qtext">Seberapa sering Anda menggunakan perangkat AI (ChatGPT, Gemini, dll.) untuk keperluan akademik?</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Tidak Pernah</span><span class="lik-lt">Sangat Sering</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q2: ANGKATAN -->
-  <div class="slide" data-slide="2" data-key="angkatan">
-    <div class="q-section-tag">Profil Demografis</div>
-    <div class="q-number">Pertanyaan 2 / 15</div>
-    <div class="q-text">Tahun angkatan berapa Anda?</div>
-    <div class="options-group">
-      <div class="option-btn" data-value="2021" onclick="selectOption(this)">
-        <span class="option-key">A</span>
-        <span class="option-label">2021</span>
-      </div>
-      <div class="option-btn" data-value="2022" onclick="selectOption(this)">
-        <span class="option-key">B</span>
-        <span class="option-label">2022</span>
-      </div>
-      <div class="option-btn" data-value="2023" onclick="selectOption(this)">
-        <span class="option-key">C</span>
-        <span class="option-label">2023</span>
-      </div>
-      <div class="option-btn" data-value="2024" onclick="selectOption(this)">
-        <span class="option-key">D</span>
-        <span class="option-label">2024</span>
-      </div>
-      <div class="option-btn" data-value="2025" onclick="selectOption(this)">
-        <span class="option-key">E</span>
-        <span class="option-label">2025</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>A</kbd>-<kbd>E</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s5" data-key="ai_riset">
+  <div class="tag">Intensitas Penggunaan AI</div><div class="qnum">Pertanyaan 4 / 15</div>
+  <div class="qtext">Seberapa sering Anda menggunakan AI spesifik penelitian (Perplexity, Mendeley AI) untuk mencari referensi literatur sains?</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Tidak Pernah</span><span class="lik-lt">Sangat Sering</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q3: AI Umum -->
-  <div class="slide" data-slide="3" data-key="ai_umum">
-    <div class="q-section-tag">Intensitas Penggunaan AI</div>
-    <div class="q-number">Pertanyaan 3 / 15</div>
-    <div class="q-text">Seberapa sering Anda menggunakan perangkat AI (ChatGPT, Gemini, dll.) untuk keperluan akademik?</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Tidak Pernah</span>
-        <span class="likert-label-text">Sangat Sering</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s6" data-key="ai_mingguan">
+  <div class="tag">Intensitas Penggunaan AI</div><div class="qnum">Pertanyaan 5 / 15</div>
+  <div class="qtext">Seberapa sering Anda mengandalkan AI secara rutin dalam satu minggu untuk membantu pengerjaan laporan praktikum atau tugas harian?</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Tidak Pernah</span><span class="lik-lt">Sangat Sering</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q4: AI Riset -->
-  <div class="slide" data-slide="4" data-key="ai_riset">
-    <div class="q-section-tag">Intensitas Penggunaan AI</div>
-    <div class="q-number">Pertanyaan 4 / 15</div>
-    <div class="q-text">Seberapa sering Anda menggunakan AI spesifik penelitian (Perplexity, Mendeley AI) untuk mencari referensi literatur sains?</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Tidak Pernah</span>
-        <span class="likert-label-text">Sangat Sering</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s7" data-key="tam_peou1">
+  <div class="tag">Technology Acceptance Model</div><div class="qnum">Pertanyaan 6 / 15</div>
+  <div class="qtext">Perangkat AI mudah dipelajari dan dioperasikan tanpa memerlukan usaha mental yang berlebih.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q5: AI Mingguan -->
-  <div class="slide" data-slide="5" data-key="ai_mingguan">
-    <div class="q-section-tag">Intensitas Penggunaan AI</div>
-    <div class="q-number">Pertanyaan 5 / 15</div>
-    <div class="q-text">Seberapa sering Anda mengandalkan AI secara rutin dalam satu minggu untuk membantu pengerjaan laporan praktikum atau tugas harian?</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Tidak Pernah</span>
-        <span class="likert-label-text">Sangat Sering</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s8" data-key="tam_peou2">
+  <div class="tag">Technology Acceptance Model</div><div class="qnum">Pertanyaan 7 / 15</div>
+  <div class="qtext">Saya merasa antarmuka (interface) dari berbagai perangkat AI cukup sederhana dan mendukung alur kerja sebagai mahasiswa eksakta.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q6: TAM PEOU1 -->
-  <div class="slide" data-slide="6" data-key="tam_peou1">
-    <div class="q-section-tag">Technology Acceptance Model</div>
-    <div class="q-number">Pertanyaan 6 / 15</div>
-    <div class="q-text">Perangkat AI mudah dipelajari dan dioperasikan tanpa memerlukan usaha mental yang berlebih.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s9" data-key="tam_pu1">
+  <div class="tag">Technology Acceptance Model</div><div class="qnum">Pertanyaan 8 / 15</div>
+  <div class="qtext">Penggunaan AI terbukti mempercepat proses penyelesaian tugas akademik dan laporan praktikum saya.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q7: TAM PEOU2 -->
-  <div class="slide" data-slide="7" data-key="tam_peou2">
-    <div class="q-section-tag">Technology Acceptance Model</div>
-    <div class="q-number">Pertanyaan 7 / 15</div>
-    <div class="q-text">Saya merasa antarmuka (interface) dari berbagai perangkat AI cukup sederhana dan mendukung alur kerja sebagai mahasiswa eksakta.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s10" data-key="tam_pu2">
+  <div class="tag">Technology Acceptance Model</div><div class="qnum">Pertanyaan 9 / 15</div>
+  <div class="qtext">Perangkat AI membantu saya meningkatkan performa dan pemahaman kognitif terhadap materi perkuliahan.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q8: TAM PU1 -->
-  <div class="slide" data-slide="8" data-key="tam_pu1">
-    <div class="q-section-tag">Technology Acceptance Model</div>
-    <div class="q-number">Pertanyaan 8 / 15</div>
-    <div class="q-text">Penggunaan AI terbukti mempercepat proses penyelesaian tugas akademik dan laporan praktikum saya.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s11" data-key="tam_pu3">
+  <div class="tag">Technology Acceptance Model</div><div class="qnum">Pertanyaan 10 / 15</div>
+  <div class="qtext">Secara keseluruhan, saya percaya bahwa AI adalah sarana yang krusial untuk meningkatkan kompetensi akademik saya.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q9: TAM PU2 -->
-  <div class="slide" data-slide="9" data-key="tam_pu2">
-    <div class="q-section-tag">Technology Acceptance Model</div>
-    <div class="q-number">Pertanyaan 9 / 15</div>
-    <div class="q-text">Perangkat AI membantu saya meningkatkan performa dan pemahaman kognitif terhadap materi perkuliahan.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s12" data-key="srl_plan">
+  <div class="tag">Self-Regulated Learning</div><div class="qnum">Pertanyaan 11 / 15</div>
+  <div class="qtext">AI membantu saya merencanakan kerangka penulisan tugas atau eksperimen dengan lebih terstruktur.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q10: TAM PU3 -->
-  <div class="slide" data-slide="10" data-key="tam_pu3">
-    <div class="q-section-tag">Technology Acceptance Model</div>
-    <div class="q-number">Pertanyaan 10 / 15</div>
-    <div class="q-text">Secara keseluruhan, saya percaya bahwa AI adalah sarana yang krusial untuk meningkatkan kompetensi akademik saya.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s13" data-key="srl_exec1">
+  <div class="tag">Self-Regulated Learning</div><div class="qnum">Pertanyaan 12 / 15</div>
+  <div class="qtext">Saya tetap mempertahankan orisinalitas pemikiran dengan melakukan verifikasi atau cross-check pada setiap data yang diberikan oleh AI.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q11: SRL Plan -->
-  <div class="slide" data-slide="11" data-key="srl_plan">
-    <div class="q-section-tag">Self-Regulated Learning</div>
-    <div class="q-number">Pertanyaan 11 / 15</div>
-    <div class="q-text">AI membantu saya merencanakan kerangka penulisan tugas atau eksperimen dengan lebih terstruktur.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s14" data-key="srl_exec2">
+  <div class="tag">Self-Regulated Learning</div><div class="qnum">Pertanyaan 13 / 15</div>
+  <div class="qtext">Ketersediaan AI membuat saya lebih mandiri dalam mencari solusi atau memecahkan masalah akademis secara proaktif.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q12: SRL Exec1 -->
-  <div class="slide" data-slide="12" data-key="srl_exec1">
-    <div class="q-section-tag">Self-Regulated Learning</div>
-    <div class="q-number">Pertanyaan 12 / 15</div>
-    <div class="q-text">Saya tetap mempertahankan orisinalitas pemikiran dengan melakukan verifikasi atau cross-check pada setiap data yang diberikan oleh AI.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s15" data-key="srl_eval1">
+  <div class="tag">Self-Regulated Learning</div><div class="qnum">Pertanyaan 14 / 15</div>
+  <div class="qtext">Saya menggunakan AI sebagai alat untuk mengevaluasi, mengoreksi, atau mencari masukan ulang pada draf tugas yang telah saya kerjakan.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-next" onclick="next()">Lanjut →</button></div>
+  <div class="hint">Tekan <kbd>1</kbd>–<kbd>5</kbd> · <kbd>Enter</kbd> lanjut</div>
+</div>
 
-  <!-- Q13: SRL Exec2 -->
-  <div class="slide" data-slide="13" data-key="srl_exec2">
-    <div class="q-section-tag">Self-Regulated Learning</div>
-    <div class="q-number">Pertanyaan 13 / 15</div>
-    <div class="q-text">Ketersediaan AI membuat saya lebih mandiri dalam mencari solusi atau memecahkan masalah akademis secara proaktif.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
+<div class="slide" id="s16" data-key="srl_risk">
+  <div class="tag">Self-Regulated Learning</div><div class="qnum">Pertanyaan 15 / 15 · Terakhir! 🎉</div>
+  <div class="qtext">Penggunaan AI yang terus-menerus justru membuat saya merasa kehilangan percaya diri untuk menyelesaikan tugas murni tanpa bantuan teknologi.</div>
+  <div class="lik-wrap"><div class="lik-row"><button class="lik" data-v="1" onclick="pickLik(this)">1</button><button class="lik" data-v="2" onclick="pickLik(this)">2</button><button class="lik" data-v="3" onclick="pickLik(this)">3</button><button class="lik" data-v="4" onclick="pickLik(this)">4</button><button class="lik" data-v="5" onclick="pickLik(this)">5</button></div><div class="lik-labels"><span class="lik-lt">Sangat Tidak Setuju</span><span class="lik-lt">Sangat Setuju</span></div></div>
+  <div class="nav"><button class="btn btn-back" onclick="prev()">← Kembali</button><button class="btn btn-submit" onclick="submitSurvey()">Kirim Jawaban 🚀</button></div>
+</div>
 
-  <!-- Q14: SRL Eval1 -->
-  <div class="slide" data-slide="14" data-key="srl_eval1">
-    <div class="q-section-tag">Self-Regulated Learning</div>
-    <div class="q-number">Pertanyaan 14 / 15</div>
-    <div class="q-text">Saya menggunakan AI sebagai alat untuk mengevaluasi, mengoreksi, atau mencari masukan ulang pada draf tugas yang telah saya kerjakan.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-next" onclick="goNext()">Lanjut →</button>
-    </div>
-    <div class="hint-text">Tekan <kbd>1</kbd>-<kbd>5</kbd> untuk memilih · <kbd>Enter</kbd> untuk lanjut</div>
-  </div>
-
-  <!-- Q15: SRL Risk (REVERSE) -->
-  <div class="slide" data-slide="15" data-key="srl_risk">
-    <div class="q-section-tag">Self-Regulated Learning</div>
-    <div class="q-number">Pertanyaan 15 / 15 · Terakhir! 🎉</div>
-    <div class="q-text">Penggunaan AI yang terus-menerus justru membuat saya merasa kehilangan percaya diri untuk menyelesaikan tugas murni tanpa bantuan teknologi.</div>
-    <div class="likert-container">
-      <div class="likert-scale">
-        <button class="likert-btn" data-value="1" onclick="selectLikert(this)">1</button>
-        <button class="likert-btn" data-value="2" onclick="selectLikert(this)">2</button>
-        <button class="likert-btn" data-value="3" onclick="selectLikert(this)">3</button>
-        <button class="likert-btn" data-value="4" onclick="selectLikert(this)">4</button>
-        <button class="likert-btn" data-value="5" onclick="selectLikert(this)">5</button>
-      </div>
-      <div class="likert-labels">
-        <span class="likert-label-text">Sangat Tidak Setuju</span>
-        <span class="likert-label-text">Sangat Setuju</span>
-      </div>
-    </div>
-    <div class="nav-row">
-      <button class="btn-prev" onclick="goPrev()">← Kembali</button>
-      <button class="btn-submit" id="submitBtn" onclick="submitSurvey()">
-        Kirim Jawaban 🚀
-      </button>
-    </div>
-  </div>
-
-  <!-- THANK YOU -->
-  <div class="slide" data-slide="16">
-    <div class="thankyou-content">
-      <div class="thankyou-emoji">🎊</div>
-      <h2 class="thankyou-title">Respons Terkirim!</h2>
-      <p class="thankyou-text">Terima kasih banyak atas partisipasi Anda dalam penelitian ini. Jawaban Anda sangat berarti bagi pengembangan ilmu pengetahuan di FMIPA IPB University.</p>
-      <div class="thankyou-stats">
-        <div class="stat-item">
-          <div class="stat-value">15</div>
-          <div class="stat-label">Pertanyaan Dijawab</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="timeTaken">-</div>
-          <div class="stat-label">Waktu Pengisian</div>
-        </div>
-      </div>
-      <p class="intro-meta">Kelompok 10 · ST2101 Metode Statistika · IPB University</p>
-    </div>
-  </div>
+<div class="slide" id="s17"><div class="thankyou">
+  <div class="ty-emoji">🎊</div>
+  <h2 class="ty-title">Respons Terkirim!</h2>
+  <p class="ty-text">Terima kasih banyak atas partisipasi Anda dalam penelitian ini. Jawaban Anda sangat berarti bagi pengembangan ilmu pengetahuan di FMIPA IPB University.</p>
+  <div class="ty-stats"><div style="text-align:center"><div class="stat-val">15</div><div class="stat-lbl">Pertanyaan Dijawab</div></div><div style="text-align:center"><div class="stat-val" id="timeVal">-</div><div class="stat-lbl">Waktu Pengisian</div></div></div>
+  <p class="intro-meta">Kelompok 10 · ST2101 Metode Statistika · IPB University</p>
+</div></div>
 
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrxGwhOK5RMGqwBGuo7kUQOs0fU0KixsNTFGpya_TWfm0ulT-AMnCrRZ5l-OZ_pC3o/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxrxGwhOK5RMGqwBGuo7kUQOs0fU0KixsNTFGpya_TWfm0ulT-AMnCrRZ5l-OZ_pC3o/exec';
+const LAST_Q=16,TY_SLIDE=17,TOTAL_Q=15;
+let cur=0,busy=false,done=false,answers={},startTime=null;
 
-let current = 0;
-const totalQuestions = 15;
-const totalSlides = 17; // 0=intro, 1-15=questions, 16=thankyou
-const answers = {};
-let startTime = null;
-let submitted = false;
-
-// ===== NAVIGATION =====
-function goNext() {
-  if (current === 0) {
-    startTime = Date.now();
-  }
-  if (current >= 1 && current <= 15) {
-    const slide = document.querySelector(`[data-slide="${current}"]`);
-    const key = slide.dataset.key;
-    if (!answers[key]) {
-      slide.classList.add('shake');
-      setTimeout(() => slide.classList.remove('shake'), 400);
-      return;
-    }
-  }
-  if (current < 15) {
-    navigateTo(current + 1);
-  }
+/* --- Viewport height fix for mobile keyboards --- */
+function setVH(){
+  const h=window.visualViewport?window.visualViewport.height:window.innerHeight;
+  document.documentElement.style.setProperty('--app-h',h+'px');
+}
+setVH();
+window.addEventListener('resize',setVH);
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',setVH);
+  window.visualViewport.addEventListener('scroll',setVH);
 }
 
-function goPrev() {
-  if (current > 0) {
-    navigateTo(current - 1, true);
-  }
+/* --- Helpers --- */
+const $=id=>document.getElementById(id);
+const sl=i=>$('s'+i);
+
+/* --- Navigation using CSS transitions only (no display:none) --- */
+function goTo(target,reverse){
+  if(busy)return;
+  busy=true;
+
+  const from=sl(cur);
+  const to=sl(target);
+
+  // Exit current slide
+  from.classList.remove('active');
+  from.classList.add(reverse?'exit-down':'exit-up');
+
+  // Prepare target starting position (no transition)
+  to.classList.remove('active','exit-up','exit-down');
+  to.style.transition='none';
+  to.style.opacity='0';
+  to.style.transform=reverse?'translateY(-50px)':'translateY(50px)';
+  void to.offsetHeight; // force reflow
+
+  // Animate in
+  to.style.transition='';
+  to.style.opacity='';
+  to.style.transform='';
+  to.classList.add('active');
+
+  setTimeout(()=>{
+    from.classList.remove('exit-up','exit-down');
+    cur=target;
+    updateProgress();
+    restoreAnswers(target);
+    if(target===1)setTimeout(()=>$('inputNama').focus(),120);
+    busy=false;
+  },420);
 }
 
-function navigateTo(target, reverse = false) {
-  const currentSlide = document.querySelector(`[data-slide="${current}"]`);
-  const targetSlide = document.querySelector(`[data-slide="${target}"]`);
+/* --- Validation --- */
+function validate(i){
+  if(i===0)return true;
+  if(i===1){
+    const v=$('inputNama').value.trim();
+    if(!v){$('errNama').classList.add('show');shk(i);return false}
+    $('errNama').classList.remove('show');
+    answers.nama=v;return true;
+  }
+  const s=sl(i),k=s?.dataset?.key;
+  if(k&&!answers[k]){shk(i);return false}
+  return true;
+}
+function shk(i){const s=sl(i);s.style.animation='shake .35s ease';setTimeout(()=>s.style.animation='',350)}
 
-  currentSlide.classList.remove('active');
-  currentSlide.classList.add(reverse ? '' : 'exit-up');
-
-  setTimeout(() => {
-    currentSlide.classList.remove('exit-up');
-    currentSlide.style.transform = reverse ? 'translateY(60px)' : '';
-  }, 550);
-
-  current = target;
-  targetSlide.classList.add('active');
-
-  updateProgress();
-
-  // Show/hide progress bar
-  document.getElementById('progressBar').style.display = current >= 1 && current <= 15 ? '' : 'none';
+/* --- Next / Prev --- */
+function next(){
+  if(busy||done)return;
+  if(!validate(cur))return;
+  if(cur===0){startTime=Date.now();playBGM()}
+  if(cur<LAST_Q)goTo(cur+1,false);
+}
+function prev(){
+  if(busy||done||cur<=0)return;
+  goTo(cur-1,true);
 }
 
-function updateProgress() {
-  const pct = current <= 0 ? 0 : Math.round((Math.min(current, totalQuestions) / totalQuestions) * 100);
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent = pct + '%';
+/* --- Progress --- */
+function updateProgress(){
+  const p=$('prog');
+  if(cur>=2&&cur<=LAST_Q){
+    p.classList.add('show');
+    const qi=cur-1;
+    const pct=Math.round((qi/TOTAL_Q)*100);
+    $('progFill').style.width=pct+'%';
+    $('progLabel').textContent=pct+'%';
+  }else{p.classList.remove('show')}
 }
 
-// ===== OPTION SELECT =====
-function selectOption(el) {
-  const group = el.closest('.options-group');
-  group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-
-  const slide = el.closest('.slide');
-  const key = slide.dataset.key;
-  answers[key] = el.dataset.value;
-
-  // Auto-advance after short delay
-  setTimeout(() => goNext(), 350);
+/* --- Restore answers when going back --- */
+function restoreAnswers(i){
+  const s=sl(i);if(!s)return;
+  const k=s.dataset?.key;if(!k)return;
+  if(k==='nama'){$('inputNama').value=answers.nama||'';return}
+  if(!answers[k])return;
+  s.querySelectorAll('.opt').forEach(o=>o.classList.toggle('sel',o.dataset.v===String(answers[k])));
+  s.querySelectorAll('.lik').forEach(l=>l.classList.toggle('sel',parseInt(l.dataset.v)===answers[k]));
 }
 
-function selectLikert(el) {
-  const group = el.closest('.likert-scale');
-  group.querySelectorAll('.likert-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-
-  const slide = el.closest('.slide');
-  const key = slide.dataset.key;
-  answers[key] = parseInt(el.dataset.value);
-
-  setTimeout(() => {
-    if (current < 15) goNext();
-  }, 350);
+/* --- Pick handlers --- */
+function pickOpt(el){
+  if(busy||done)return;
+  el.closest('.opts').querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  answers[el.closest('.slide').dataset.key]=el.dataset.v;
+  setTimeout(next,280);
+}
+function pickLik(el){
+  if(busy||done)return;
+  el.closest('.lik-row').querySelectorAll('.lik').forEach(l=>l.classList.remove('sel'));
+  el.classList.add('sel');
+  const s=el.closest('.slide');
+  answers[s.dataset.key]=parseInt(el.dataset.v);
+  const idx=parseInt(s.id.replace('s',''));
+  if(idx<LAST_Q)setTimeout(next,280);
 }
 
-// ===== KEYBOARD SUPPORT =====
-document.addEventListener('keydown', (e) => {
-  if (submitted) return;
-
-  const slide = document.querySelector(`[data-slide="${current}"]`);
-  if (!slide) return;
-
-  // Enter = next
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (current === 15) {
-      submitSurvey();
-    } else {
-      goNext();
-    }
-    return;
-  }
-
-  // Backspace = prev
-  if (e.key === 'Backspace') {
-    e.preventDefault();
-    goPrev();
-    return;
-  }
-
-  // Number keys for likert
-  const likertBtns = slide.querySelectorAll('.likert-btn');
-  if (likertBtns.length > 0 && e.key >= '1' && e.key <= '5') {
-    e.preventDefault();
-    likertBtns[parseInt(e.key) - 1].click();
-    return;
-  }
-
-  // Letter keys for options
-  const optionBtns = slide.querySelectorAll('.option-btn');
-  if (optionBtns.length > 0) {
-    const idx = e.key.toLowerCase().charCodeAt(0) - 97; // a=0, b=1...
-    if (idx >= 0 && idx < optionBtns.length) {
-      e.preventDefault();
-      optionBtns[idx].click();
-    }
-  }
+/* --- Keyboard --- */
+document.addEventListener('keydown',e=>{
+  if(busy||done)return;
+  const s=sl(cur);
+  if(e.key==='Enter'){e.preventDefault();cur===LAST_Q?submitSurvey():next();return}
+  if(e.key==='Backspace'&&document.activeElement?.tagName!=='INPUT'){e.preventDefault();prev();return}
+  const liks=s.querySelectorAll('.lik');
+  if(liks.length&&e.key>='1'&&e.key<='5'){e.preventDefault();liks[e.key-1].click();return}
+  const opts=s.querySelectorAll('.opt');
+  if(opts.length){const i=e.key.toLowerCase().charCodeAt(0)-97;if(i>=0&&i<opts.length){e.preventDefault();opts[i].click()}}
 });
+$('inputNama').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();next()}});
+$('inputNama').addEventListener('input',()=>$('errNama').classList.remove('show'));
 
-// ===== SUBMIT =====
-async function submitSurvey() {
-  // Validate last question
-  const slide = document.querySelector(`[data-slide="15"]`);
-  const key = slide.dataset.key;
-  if (!answers[key]) {
-    slide.classList.add('shake');
-    setTimeout(() => slide.classList.remove('shake'), 400);
-    return;
-  }
+/* --- Touch swipe --- */
+let tY=0,tT=0;
+document.addEventListener('touchstart',e=>{tY=e.touches[0].clientY;tT=Date.now()},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(document.activeElement?.tagName==='INPUT')return;
+  const dy=tY-e.changedTouches[0].clientY,dt=Date.now()-tT;
+  if(dt<400&&Math.abs(dy)>50){dy>0?next():prev()}
+},{passive:true});
+document.body.addEventListener('touchmove',e=>{if(document.activeElement?.tagName!=='INPUT')e.preventDefault()},{passive:false});
 
-  if (submitted) return;
-  submitted = true;
+/* --- Submit --- */
+async function submitSurvey(){
+  if(busy||done)return;
+  if(!validate(cur))return;
+  done=true;
+  $('loading').classList.add('show');
 
-  const overlay = document.getElementById('loadingOverlay');
-  overlay.classList.add('show');
+  try{
+    await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      nama:answers.nama||'',prodi:answers.prodi,angkatan:answers.angkatan,
+      ai_umum:answers.ai_umum,ai_riset:answers.ai_riset,ai_mingguan:answers.ai_mingguan,
+      tam_peou1:answers.tam_peou1,tam_peou2:answers.tam_peou2,
+      tam_pu1:answers.tam_pu1,tam_pu2:answers.tam_pu2,tam_pu3:answers.tam_pu3,
+      srl_plan:answers.srl_plan,srl_exec1:answers.srl_exec1,srl_exec2:answers.srl_exec2,
+      srl_eval1:answers.srl_eval1,srl_risk:answers.srl_risk
+    })});
+  }catch(e){}
 
-  const payload = {
-    prodi: answers.prodi,
-    angkatan: answers.angkatan,
-    ai_umum: answers.ai_umum,
-    ai_riset: answers.ai_riset,
-    ai_mingguan: answers.ai_mingguan,
-    tam_peou1: answers.tam_peou1,
-    tam_peou2: answers.tam_peou2,
-    tam_pu1: answers.tam_pu1,
-    tam_pu2: answers.tam_pu2,
-    tam_pu3: answers.tam_pu3,
-    srl_plan: answers.srl_plan,
-    srl_exec1: answers.srl_exec1,
-    srl_exec2: answers.srl_exec2,
-    srl_eval1: answers.srl_eval1,
-    srl_risk: answers.srl_risk
-  };
+  const el=Math.round((Date.now()-startTime)/1000),m=Math.floor(el/60),s=el%60;
+  $('timeVal').textContent=m>0?m+'m '+s+'s':s+'s';
+  $('loading').classList.remove('show');
+  $('prog').classList.remove('show');
 
-  try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } catch (err) {
-    console.log('Submitted (no-cors mode)');
-  }
-
-  // Calculate time
-  const elapsed = Math.round((Date.now() - startTime) / 1000);
-  const mins = Math.floor(elapsed / 60);
-  const secs = elapsed % 60;
-  document.getElementById('timeTaken').textContent = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-
-  overlay.classList.remove('show');
-  document.getElementById('progressBar').style.display = 'none';
-  navigateTo(16);
-  launchConfetti();
+  // Transition to thank you
+  busy=true;
+  const from=sl(cur);
+  from.classList.remove('active');
+  from.classList.add('exit-up');
+  setTimeout(()=>{
+    from.classList.remove('exit-up');
+    sl(TY_SLIDE).classList.add('active');
+    cur=TY_SLIDE;busy=false;
+    launchConfetti();
+  },420);
 }
 
-// ===== CONFETTI =====
-function launchConfetti() {
-  const zone = document.getElementById('confettiZone');
-  const colors = ['#6ee7b7', '#34d399', '#38bdf8', '#a78bfa', '#fbbf24', '#f87171', '#fb923c', '#e879f9'];
-
-  for (let i = 0; i < 80; i++) {
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.left = Math.random() * 100 + '%';
-    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-    piece.style.width = (Math.random() * 8 + 5) + 'px';
-    piece.style.height = (Math.random() * 8 + 5) + 'px';
-    piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
-    piece.style.animationDelay = (Math.random() * 1.5) + 's';
-    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-    zone.appendChild(piece);
-  }
-
-  setTimeout(() => { zone.innerHTML = ''; }, 5000);
-}
-
-// ===== TOUCH SWIPE SUPPORT =====
-let touchStartY = 0;
-document.addEventListener('touchstart', (e) => {
-  touchStartY = e.touches[0].clientY;
-}, { passive: true });
-document.addEventListener('touchend', (e) => {
-  const diff = touchStartY - e.changedTouches[0].clientY;
-  if (Math.abs(diff) > 60) {
-    if (diff > 0) goNext();
-    else goPrev();
-  }
-}, { passive: true });
-
-// ===== RESTORE ANSWERS ON BACK =====
-document.querySelectorAll('.slide').forEach(slide => {
-  const observer = new MutationObserver(() => {
-    if (slide.classList.contains('active')) {
-      const key = slide.dataset.key;
-      if (!key || !answers[key]) return;
-
-      // Restore option selection
-      const opts = slide.querySelectorAll('.option-btn');
-      opts.forEach(o => {
-        o.classList.toggle('selected', o.dataset.value === answers[key]);
-      });
-
-      // Restore likert selection
-      const likers = slide.querySelectorAll('.likert-btn');
-      likers.forEach(l => {
-        l.classList.toggle('selected', parseInt(l.dataset.value) === answers[key]);
-      });
-    }
+/* --- Audio --- */
+let audioPlaying=false;
+function playBGM(){
+  const a=$('bgm');
+  a.volume=0.3;
+  a.play().then(()=>{
+    audioPlaying=true;
+    $('audioBtn').classList.add('show');
+  }).catch(()=>{
+    // Autoplay blocked — show button anyway so user can tap
+    $('audioBtn').classList.add('show','muted');
   });
-  observer.observe(slide, { attributes: true, attributeFilter: ['class'] });
-});
-</script>
+}
+function toggleAudio(){
+  const a=$('bgm'),btn=$('audioBtn');
+  if(a.paused){
+    a.volume=0.3;
+    a.play().then(()=>{audioPlaying=true;btn.classList.remove('muted')}).catch(()=>{});
+  }else{
+    a.pause();audioPlaying=false;btn.classList.add('muted');
+  }
+}
 
+/* --- Confetti --- */
+function launchConfetti(){
+  const z=$('confetti'),c=['#6ee7b7','#34d399','#38bdf8','#a78bfa','#fbbf24','#f87171','#fb923c','#e879f9'];
+  for(let i=0;i<70;i++){
+    const p=document.createElement('div');p.className='confetti-piece';
+    p.style.cssText=`left:${Math.random()*100}%;background:${c[Math.floor(Math.random()*c.length)]};width:${Math.random()*8+5}px;height:${Math.random()*8+5}px;animation-duration:${Math.random()*2+2}s;animation-delay:${Math.random()*1.5}s;border-radius:${Math.random()>.5?'50%':'2px'}`;
+    z.appendChild(p);
+  }
+  setTimeout(()=>z.innerHTML='',5000);
+}
+</script>
 </body>
 </html>
